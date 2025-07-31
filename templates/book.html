@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Book Parking Spot</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <style>
+    body {
+      background: url('/static/background_black.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .glass-box {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      padding: 2rem;
+      max-width: 500px;
+      margin: 50px auto;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .form-label {
+      color: #aadfff;
+    }
+
+     .form-control {
+      background-color: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #727272ff;
+  }
+
+  .form-control[readonly] {
+    color: #727272ff;
+    background-color: rgba(255, 255, 255, 1);
+    opacity: 1;
+  }
+    .form-control::placeholder {
+      color: #ccc;
+    }
+
+    .form-control:focus {
+      background-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+      
+    }
+
+    .form-title {
+      background-color: #ffe17b;
+      color: #333;
+      font-weight: bold;
+      font-size: 1.4rem;
+      padding: 0.7rem;
+      text-align: center;
+      border-radius: 12px 12px 0 0;
+      margin-bottom: 1rem;
+    }
+
+    .btn-custom {
+      min-width: 100px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="password"]{
+      background-color: #2c2c2c;
+      color: #f0f0f0;
+      border: 1px solid #444;
+      padding: 10px;
+      border-radius: 6px;
+      width: 100%;
+      font-size: 16px;
+    }
+
+  
+
+  </style>
+</head>
+<body>
+
+  <div class="glass-box">
+    <div class="form-title">Book the parking spot</div>
+    <form method="POST" action="{{ url_for('user.book_parking_lot', lot_id=lot.id) }}">
+      <!-- {% set assigned_spot = lot.spots | selectattr("is_available") | list | first %} -->
+
+       {% if spot %} 
+        <div class="mb-3">
+          <label class="form-label">Assigned Spot ID</label>
+        
+          <input type="text" class="form-control" value="{{ spot.spot_number }}" readonly>
+       
+        </div>
+      {% else %}
+        <div class="alert alert-warning"> No available spots in this lot.</div>
+      {% endif %}
+
+
+      <div class="mb-3">
+        <label class="form-label">Lot Location</label>
+        <input type="text" class="form-control" value="{{ lot.location_name }}" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">User ID</label>
+        <input type="text" class="form-control" value="{{ current_user.id }}" readonly>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Vehicle Number</label>
+        <input type="text" class="form-control" name = "vehicle_number" placeholder="Enter your vehicle number" required>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <button type="submit" class="btn btn-primary btn-custom">Reserve</button>
+        <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary px-4">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>

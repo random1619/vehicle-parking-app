@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Search</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: url('/static/background_black.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      padding: 2rem;
+    }
+    .nav-link-custom {
+      color: #fff;
+      margin-right: 1rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nav-link-custom:hover {
+      text-decoration: underline;
+    }
+    .profile-icon {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .section-title {
+      color: #aadfff;
+    }
+    .parking-card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container my-5">
+    <div class="glass-card">
+
+      <!-- Navbar -->
+      <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-25 p-3 rounded mb-4">
+        <div class="d-flex align-items-center">
+          <span class="fw-bold me-4 text-white">Welcome to Admin</span>
+          <a href="{{ url_for('admin.dashboard') }}" class="nav-link-custom">Home</a>
+          <a href="{{ url_for('admin.view_users') }}" class="nav-link-custom">Users</a>
+          <a href="{{ url_for('admin.admin_search') }}" class="nav-link-custom">Search</a>
+          <a href="{{ url_for('dashboard.admin_summary') }}" class="nav-link-custom">Summary</a>
+          <a href="{{ url_for('auth.logout') }}" class="nav-link-custom">Logout</a>
+        </div>
+        <div>
+          <a href="{{ url_for('dashboard.edit_profile') }}" title="Edit Profile">
+            <img src="/static/profile pics.png" alt="Profile" class="profile-icon">
+          </a>
+        </div>
+      </div>
+
+      <!-- Search Box -->
+      <div class="mb-5">
+        <h2 class="section-title mb-3">Search Parking Lots</h2>
+        <form method="GET" action="{{ url_for('admin.admin_search') }}" class="row g-3 align-items-center">
+          <div class="col-auto">
+            <select name="filter" class="form-select">
+              <option value="user" {% if request.args.get('filter') == 'user' %}selected{% endif %}>User ID</option>
+              <option value="location" {% if request.args.get('filter') == 'location' %}selected{% endif %}>Location</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <input type="text" class="form-control" name="query" placeholder="Enter search term" value="{{ request.args.get('query', '') }}" required>
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-outline-info">Search</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filtered Parking Lot Results -->
+      <div class="row">
+        {% if parking_lots %}
+          {% for lot in parking_lots %}
+            <div class="col-md-4">
+              <div class="parking-card text-white">
+                <h5>{{ lot.location_name }}</h5>
+                <a href="{{ url_for('admin.edit_lot', lot_id=lot.id) }}" class="text-info me-2">Edit</a> |
+                <a href="{{ url_for('admin.delete_lot', lot_id=lot.id)}}" onclick="return confirm('Are you sure?')" class="text-danger ms-2">Delete</a>
+                <p class="mt-2">
+                  {% if filter_by == 'user' %}
+                    Occupied by user (red): {{ user_booked_slots_per_lot[lot.id] if lot.id in user_booked_slots_per_lot else 0 }} / {{ lot.total_slots }}
+                  {% elif filter_by == 'location' %}
+                    Total occupied (yellow): {{ lot_occupied_spots[lot.id] if lot.id in lot_occupied_spots else 0 }} / {{ lot.total_slots }}
+                  {% endif %}
+                </p>
+
+                <div class="d-flex flex-wrap gap-1">
+                  {% for spot in lot.spots[:10] %}
+                    {% if spot.is_available %}
+                      <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" class="badge bg-success">A</a>
+                    {% else %}
+                      <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" 
+                        class="badge {% if filter_by == 'user' and spot.id|string in user_booked_spot_ids %}bg-danger{% else %}bg-warning{% endif %}">
+                        O
+                      </a>
+
+                    {% endif %}
+                  {% endfor %}
+                  {% if lot.spots|length > 10 %}
+                    <span class="badge bg-secondary">+{{ lot.spots|length - 10 }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted">No matching parking lots found.</div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

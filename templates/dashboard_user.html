@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>USER DASHBOARD</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+    body {
+      background: url('/static/background_black.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      padding: 2rem;
+    }
+    .section-title {
+      font-size: 1.3rem;
+      color: #aadfff;
+    }
+    .table th, .table td {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #fff !important;
+    }
+    .table thead th {
+      color: #aadfff !important;
+    }
+    .form-control {
+      background-color: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    .form-control::placeholder {
+      color: #ccc;
+    }
+    .form-control:focus {
+      background-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .nav-link-custom {
+      color: #fff;
+      margin-right: 1.5rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nav-link-custom:hover {
+      text-decoration: underline;
+    }
+    .profile-icon {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <div class="glass-card">
+      <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-25 p-3 rounded mb-4">
+        <div class="d-flex align-items-center">
+          <span class="fw-bold me-4 text-white">Welcome to User</span>
+          <a href="#" class="nav-link-custom">Home</a>
+          <a href="{{ url_for('dashboard.user_summary')}}" class="nav-link-custom">Summary</a>
+          <a href="{{ url_for('auth.logout')}}" class="nav-link-custom">Logout</a>
+        </div>
+        <div>
+          <a href="{{ url_for('dashboard.edit_profile') }}" title="Profile">
+            <img src="/static/profile pics.png" alt="Profile" class="profile-icon">
+          </a>
+        </div>
+      </div>
+
+      <h2 class="section-title mb-3">Recent Parking History</h2>
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Location</th>
+              <th>Vehicle No</th>
+              <th>Timestamp</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for booking in bookings %}
+            <tr>
+              <td>{{ booking.id }}</td>
+              <td>{{ booking.parking_lot.address }}</td>
+              <td>{{ booking.vehicle_no }}</td>
+              <td>{{ booking.timestamp.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td>
+                {% if booking.status == 'active' %}
+                  <a href="{{ url_for('user.release_booking', booking_id=booking.id) }}" class="btn btn-danger btn-sm rounded-pill">Release</a>
+                {% else %}
+                  <button class="btn btn-success btn-sm rounded-pill" disabled>Parked Out</button>
+                {% endif %}
+              </td>
+
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center">No bookings yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>    
+        </table>
+      </div>
+
+      
+      <h2 class="section-title mb-2">Find Parking by Area or PIN Code</h2>
+      <form class="mb-4" method="GET" action=" {{ url_for('dashboard.user_dashboard') }} ">
+        <div class="input-group w-50">
+          <input type="text" class="form-control" name="query" placeholder="Search by location or pin code" value="{{ request.args.get('query' , '') }}">
+          <button class="btn btn-outline-info" type="button">Search</button>
+        </div>
+      </form>
+
+      <h2 class="section-title mb-3">Available Parking Lots</h2>
+      <div class="table-responsive mb-4">
+        <table class="table table-bordered table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Address</th>
+              <th>Availability</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for lot in parking_lots %}
+            <tr>
+              <td>{{ lot.id }}</td>
+              <td>{{ lot.address }}</td>
+              <td>{{ lot.spots | selectattr('is_available') | list | length }}</td>
+              <td>
+                {% if lot.spots | selectattr('is_available') | list | length > 0 %}
+                  <a href="{{ url_for('user.book_parking_lot', lot_id=lot.id) }}" class="btn btn-success btn-sm rounded-pill">Book</a>
+                {% else %}
+                  <button class="btn btn-secondary btn-sm rounded-pill" disabled>Full</button>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="text-center">No lots available.</td>
+            </tr>
+            {% endfor %}
+              
+            
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

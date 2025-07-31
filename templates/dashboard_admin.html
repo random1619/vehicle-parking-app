@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <style>
+    body {
+      background: url('/static/background_black.png') no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      padding: 2rem;
+    }
+    .nav-link-custom {
+      color: #fff;
+      margin-right: 1rem;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .nav-link-custom:hover {
+      text-decoration: underline;
+    }
+    .profile-icon {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .section-title {
+      color: #aadfff;
+    }
+    .parking-card {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .btn-outline-light:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .fade-out {
+      transition: opacity 0.5s ease-out;
+    }
+
+    .fade-out.hide{
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container my-5">
+    <div class="glass-card">
+
+      
+      <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-25 p-3 rounded mb-4">
+        <div class="d-flex align-items-center">
+          <span class="fw-bold me-4 text-white">Welcome to Admin</span>
+          <a href="{{ url_for('admin.dashboard') }}" class="nav-link-custom">Home</a>
+          <a href="{{ url_for('admin.view_users') }}" class="nav-link-custom">Users</a> 
+          <a href="{{ url_for('admin.admin_search') }}" class="nav-link-custom">Search</a>
+          <a href="{{ url_for('dashboard.admin_summary') }}" class="nav-link-custom">Summary</a>
+          <a href="{{ url_for('auth.logout')}}" class="nav-link-custom">Logout</a>
+        </div>
+        <div>
+          <a href="{{ url_for('dashboard.edit_profile') }}" title="Edit Profile">
+            <img src="/static/profile pics.png" alt="Profile" class="profile-icon">
+          </a>
+        </div>
+      </div>
+
+      <h2 class="section-title mb-4">Parking Lots</h2>
+      {# for flash message we will use javascript here to remove displayed deletion message after 3 seconds #}
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show auto-dismiss fade-out" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+        
+      <div class="row">
+        {% for lot in parking_lots %}
+        <div class="col-md-4">
+          <div class="parking-card text-white">
+            <h5>{{ lot.location_name }}</h5>
+            <a href="{{ url_for('admin.edit_lot', lot_id = lot.id) }}" class="text-info me-2">Edit</a> |
+            <a href="{{ url_for('admin.delete_lot', lot_id = lot.id)}}" onclick="return confirm('Are you sure you want to delete this lot')" class="text-danger ms-2">Delete</a> <!-- Add delete functionality later -->
+            <p class="mt-2">(Occupied: {{  lot.occupied_slots }}/{{lot.total_slots}})</p>
+            
+            <div class="d-flex flex-wrap gap-1">
+              {% for spot in lot.spots[:10] %} {# show only  first 10 spots for brevity #}
+                {% if spot.is_available %}
+                  <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" class="badge bg-success">A</a>
+                {% else %}
+                  <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" class="badge bg-danger">O</a>
+                {% endif %}
+                
+              
+              {% endfor %}
+              {% if lot.spots|length > 10 %}
+                <span class="badge bg-secondary">+{{ lot.spots|length - 10}}</span>
+              {% endif %}
+            
+            </div>
+            
+            
+          </div>
+        </div>
+      {% else %}
+        <p class="text-muted">No parking lots available yet.</p>
+      {% endfor %}
+    </div>
+
+       <div class="mt-4 text-center">
+        <a href="{{ url_for('admin.add_lot') }}" class="btn btn-outline-info px-4 py-2 rounded-pill">+ Add Lot</a>
+       </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      // Auto-dismiss flash messages after 3 seconds
+    setTimeout(function () {
+    const alerts = document.querySelectorAll('.alert.auto-dismiss.fade-out');
+      alerts.forEach(function(alert) {
+        alert.classList.add('hide');
+        setTimeout(() => alert.remove(), 500); // it waits for transition before removing
+        bsAlert.close();
+        });
+      }, 3000); // 3 seconds
+    </script>
+  </body>
+  </html>

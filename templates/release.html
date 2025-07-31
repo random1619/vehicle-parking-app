@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Release Parking Spot</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <style>
+    body {
+      background: url('/static/background_black.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', sans-serif;
+      color: #fff;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      padding: 2rem 3rem;
+      max-width: 600px;
+      margin: 3rem auto;
+    }
+    .form-label {
+      color: #aadfff;
+      font-weight: 500;
+    }
+    .form-control {
+      background-color: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #727272ff;
+    }
+    .form-control::placeholder {
+      color: #ccc;
+    }
+    .form-control:focus {
+      background-color: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="glass-card">
+    <h3 class="text-center text-warning mb-4">Release the Parking Spot</h3>
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Spot ID</label>
+        <input type="text" class="form-control" name="spot_id" value="{{ spot.spot_number }}" readonly />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Vehicle Number</label>
+        <input type="text" class="form-control" name="vehicle_number" value="{{ booking.vehicle_no }}" readonly />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Parking Time</label>
+        <input type="text" class="form-control" name="parking_time" value="{{ booking.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}" readonly />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Releasing Time</label>
+        <input type="text" class="form-control" name="release_time" value="{{ release_time.strftime('%Y-%m-%d %H:%M:%S') }}" readonly />  
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Duration (Hours)</label>
+        <input type="text" class="form-control" value="{{ duration_hours }}" readonly />
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Total Cost (₹)</label>
+        <input type="text" class="form-control" name="total_cost" value="{{ total_cost }}" readonly />
+      </div>
+
+      <div class="d-flex justify-content-center gap-3">
+        <button type="submit" class="btn btn-primary px-4">Release</button>
+        <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary px-4">Cancel</a>
+      </div>
+    </form>
+  </div>
+</body>
+
+</html>
