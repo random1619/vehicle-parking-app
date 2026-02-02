@@ -1,103 +1,333 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>Registered Users</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registered Users - Admin</title>
   <link rel="stylesheet" href="/static/style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <style>
     body {
-      background: url('/static/background_black.png') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+      min-height: 100vh;
+      padding-bottom: 3rem;
     }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+
+    .users-container {
+      max-width: 1400px;
+      margin: 0 auto;
       padding: 2rem;
+      animation: fadeIn 0.5s ease;
     }
-    .nav-link-custom {
-      color: #fff;
-      margin-right: 1rem;
-      text-decoration: none;
+
+    .users-header {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .users-title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .users-subtitle {
+      color: var(--text-muted);
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      text-align: center;
+      transition: all var(--transition-base);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stat-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--primary-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .users-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .user-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .user-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .user-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .user-card:hover::before {
+      opacity: 1;
+    }
+
+    .user-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .user-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-email {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-details {
+      margin-top: 1rem;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .detail-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .detail-value {
+      color: var(--text-primary);
       font-weight: 500;
     }
-    .nav-link-custom:hover {
-      text-decoration: underline;
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .profile-icon {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      object-fit: cover;
+
+    .role-admin {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger-light);
+      border: 1px solid var(--danger);
     }
-    .section-title {
-      color: #aadfff;
+
+    .role-user {
+      background: rgba(99, 102, 241, 0.2);
+      color: var(--primary-light);
+      border: 1px solid var(--primary);
     }
-    .table th, .table td {
-      background-color: rgba(255, 255, 255, 0.05) !important;
-      color: #fff !important;
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
     }
-    .table thead th {
-      color: #aadfff !important;
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+      .users-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="container my-5">
-    <div class="glass-card">
-
-      <!-- Top Navbar -->
-      <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-25 p-3 rounded mb-4">
-        <div class="d-flex align-items-center">
-          <span class="fw-bold me-4 text-white">Welcome to Admin</span>
-          <a href="{{ url_for('admin.dashboard') }}" class="nav-link-custom">Home</a>
-          <a href="{{ url_for('admin.view_users') }}" class="nav-link-custom">Users</a>
-          <a href="{{ url_for('admin.admin_search') }}" class="nav-link-custom">Search</a>
-          <a href="{{ url_for('dashboard.admin_summary') }}" class="nav-link-custom">Summary</a>
-          <a href="{{ url_for('auth.logout')}}" class="nav-link-custom">Logout</a>
-        </div>
-        <div>
-          <a href="{{ url_for('dashboard.edit_profile') }}" title="Edit Profile">
-            <img src="/static/profile pics.png" alt="Profile" class="profile-icon">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">🅿️ Admin Panel</div>
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
+        <li><a href="{{ url_for('admin.admin_search') }}" class="nav-link">Search</a></li>
+        <li><a href="{{ url_for('admin.view_users') }}" class="nav-link active">Users</a></li>
+        <li><a href="{{ url_for('dashboard.edit_profile') }}" class="nav-link">Profile</a></li>
+        <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a></li>
+        <li>
+          <a href="{{ url_for('dashboard.edit_profile') }}">
+            <img src="/static/profile pics.png" alt="Admin" class="profile-avatar">
           </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="users-container">
+    <!-- Header -->
+    <div class="users-header animate-fadeIn">
+      <h1 class="users-title">Registered Users</h1>
+      <p class="users-subtitle">Manage and view all platform users</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row animate-fadeIn">
+      <div class="stat-card">
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">{{ users | length }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Admins</div>
+        <div class="stat-value">{{ users | selectattr('role', 'equalto', 'admin') | list | length }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Regular Users</div>
+        <div class="stat-value">{{ users | selectattr('role', 'equalto', 'user') | list | length }}</div>
+      </div>
+    </div>
+
+    <!-- Users Grid -->
+    {% if users %}
+    <div class="users-grid animate-fadeIn">
+      {% for user in users %}
+      <div class="user-card">
+        <div class="user-header">
+          <div class="user-avatar">
+            {{ user.full_name[0].upper() if user.full_name else user.email[0].upper() }}
+          </div>
+          <div class="user-info">
+            <div class="user-name">{{ user.full_name }}</div>
+            <div class="user-email">{{ user.email }}</div>
+          </div>
+        </div>
+
+        <div class="user-details">
+          <div class="detail-row">
+            <span class="detail-label">User ID</span>
+            <span class="detail-value">#{{ user.id }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Role</span>
+            <span class="role-badge {% if user.role == 'admin' %}role-admin{% else %}role-user{% endif %}">
+              {{ user.role }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Address</span>
+            <span class="detail-value" style="font-size: 0.875rem; text-align: right;">{{ user.address }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">PIN Code</span>
+            <span class="detail-value">{{ user.pincode }}</span>
+          </div>
         </div>
       </div>
-
-      
-      <h2 class="section-title mb-4">Registered Users</h2>
-
-      
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-          <thead class="table-light">
-            <tr>
-              <th>ID</th>
-              <th>E-Mail</th>
-              <th>Full Name</th>
-              <th>Address</th>
-              <th>Pin Code</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for user in users%}
-            <tr>
-              <td>{{ user.id }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.full_name }}</td>
-              <td>{{ user.address }}</td>
-              <td>{{ user.pincode }}</td>
-            </tr>
-            {% endfor %}
-           
-          </tbody>
-        </table>
-      </div>
-
+      {% endfor %}
     </div>
+    {% else %}
+    <div class="empty-state animate-fadeIn">
+      <div class="empty-state-icon">👥</div>
+      <p>No users registered yet.</p>
+    </div>
+    {% endif %}
   </div>
 </body>
+
 </html>

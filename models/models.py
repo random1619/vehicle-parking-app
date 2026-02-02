@@ -42,7 +42,7 @@ class ParkingLot(db.Model):
 
     @property
     def available_spots(self):
-        return sum(1 for spot in self.spots if spot.status == 'A')
+        return sum(1 for spot in self.spots if spot.is_available)
 
 class Booking(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,6 +52,8 @@ class Booking(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(10), default='active')
     spot_id = db.Column(db.Integer, db.ForeignKey('parking_spot.id'), nullable=False)
+    release_time = db.Column(db.DateTime, nullable=True)
+    cost = db.Column(db.Float, nullable=True)
     
     # Relationship to ParkingSpot
     parking_spot = db.relationship('ParkingSpot', backref='bookings', lazy=True)

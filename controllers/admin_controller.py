@@ -333,18 +333,27 @@ def admin_search():
                 lot_occupied_spots[lot.id] = occupied_count  # Store per-lot occupancy
 
         elif filter_by == 'user':
+            # Support searching by user ID, email, or name
+            user = None
             if query.isdigit():
                 user = User.query.filter_by(id=int(query)).first()
-                if user:
-                    bookings = Booking.query.filter_by(user_id=user.id).all()
-                    user_booked_spot_ids = set(str(b.spot_id) for b in bookings)
-                    lot_ids = {b.lot_id for b in bookings}
-                    parking_lots = ParkingLot.query.options(db.joinedload(ParkingLot.spots)).filter(ParkingLot.id.in_(lot_ids)).all()
+            else:
+                # Search by email or name (case-insensitive)
+                user = User.query.filter(
+                    (User.email.ilike(f"%{query.strip()}%")) |
+                    (User.full_name.ilike(f"%{query.strip()}%"))
+                ).first()
+            
+            if user:
+                bookings = Booking.query.filter_by(user_id=user.id).all()
+                user_booked_spot_ids = set(str(b.spot_id) for b in bookings)
+                lot_ids = {b.lot_id for b in bookings}
+                parking_lots = ParkingLot.query.options(db.joinedload(ParkingLot.spots)).filter(ParkingLot.id.in_(lot_ids)).all()
 
-                    # Count how many spots the user has booked per lot
-                    for lot in parking_lots:
-                        count = sum(1 for b in bookings if b.lot_id == lot.id)
-                        user_booked_slots_per_lot[lot.id] = count
+                # Count how many spots the user has booked per lot
+                for lot in parking_lots:
+                    count = sum(1 for b in bookings if b.lot_id == lot.id)
+                    user_booked_slots_per_lot[lot.id] = count
 
     return render_template(
         'admin_search.html',

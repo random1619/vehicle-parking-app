@@ -1,136 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <title>Admin - Search</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Search - Parking App</title>
   <link rel="stylesheet" href="/static/style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background: url('/static/background_black.png') no-repeat center center fixed;
-      background-size: cover;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+      min-height: 100vh;
+      padding-bottom: 3rem;
     }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+
+    .search-container {
+      max-width: 1400px;
+      margin: 0 auto;
       padding: 2rem;
+      animation: fadeIn 0.5s ease;
     }
-    .nav-link-custom {
-      color: #fff;
-      margin-right: 1rem;
-      text-decoration: none;
-      font-weight: 500;
+
+    .search-header {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
     }
-    .nav-link-custom:hover {
-      text-decoration: underline;
+
+    .search-title {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary-light), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
     }
-    .profile-icon {
-      width: 35px;
-      height: 35px;
-      border-radius: 50%;
-      object-fit: cover;
+
+    .search-subtitle {
+      color: var(--text-muted);
     }
-    .section-title {
-      color: #aadfff;
+
+    .search-box {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 2rem;
     }
+
+    .search-form {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    .form-select {
+      width: 180px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .form-select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .results-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .results-count {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .parking-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+
     .parking-card {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .parking-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .parking-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .parking-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .occupancy-info {
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: var(--radius-md);
       padding: 1rem;
       margin-bottom: 1rem;
     }
+
+    .occupancy-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .occupancy-value {
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 1.125rem;
+    }
+
+    .spot-grid-container {
+      margin-top: 1rem;
+    }
+
+    .spot-grid-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .spot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .spot-badge {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: 2px solid;
+      text-decoration: none;
+    }
+
+    .spot-available {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--success);
+      color: var(--success-light);
+    }
+
+    .spot-available:hover {
+      background: rgba(16, 185, 129, 0.2);
+      transform: scale(1.05);
+    }
+
+    .spot-occupied {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+
+    .spot-occupied:hover {
+      background: rgba(245, 158, 11, 0.2);
+      transform: scale(1.05);
+    }
+
+    .spot-user-booked {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--danger);
+      color: var(--danger-light);
+    }
+
+    .spot-user-booked:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: scale(1.05);
+    }
+
+    .spot-more {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-muted);
+      cursor: default;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state-text {
+      font-size: 1.125rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .empty-state-hint {
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .search-form {
+        grid-template-columns: 1fr;
+      }
+
+      .form-select {
+        width: 100%;
+      }
+
+      .parking-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
+
 <body>
-
-  <div class="container my-5">
-    <div class="glass-card">
-
-      <!-- Navbar -->
-      <div class="d-flex justify-content-between align-items-center bg-success bg-opacity-25 p-3 rounded mb-4">
-        <div class="d-flex align-items-center">
-          <span class="fw-bold me-4 text-white">Welcome to Admin</span>
-          <a href="{{ url_for('admin.dashboard') }}" class="nav-link-custom">Home</a>
-          <a href="{{ url_for('admin.view_users') }}" class="nav-link-custom">Users</a>
-          <a href="{{ url_for('admin.admin_search') }}" class="nav-link-custom">Search</a>
-          <a href="{{ url_for('dashboard.admin_summary') }}" class="nav-link-custom">Summary</a>
-          <a href="{{ url_for('auth.logout') }}" class="nav-link-custom">Logout</a>
-        </div>
-        <div>
-          <a href="{{ url_for('dashboard.edit_profile') }}" title="Edit Profile">
-            <img src="/static/profile pics.png" alt="Profile" class="profile-icon">
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <div class="navbar-brand">🅿️ Admin Panel</div>
+      <ul class="navbar-nav">
+        <li><a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard</a></li>
+        <li><a href="{{ url_for('admin.admin_search') }}" class="nav-link active">Search</a></li>
+        <li><a href="{{ url_for('admin.view_users') }}" class="nav-link">Users</a></li>
+        <li><a href="{{ url_for('dashboard.edit_profile') }}" class="nav-link">Profile</a></li>
+        <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a></li>
+        <li>
+          <a href="{{ url_for('dashboard.edit_profile') }}">
+            <img src="/static/profile pics.png" alt="Admin" class="profile-avatar">
           </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="search-container">
+    <!-- Header -->
+    <div class="search-header animate-fadeIn">
+      <h1 class="search-title">Search Parking Lots</h1>
+      <p class="search-subtitle">Find parking lots by location or user</p>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box animate-fadeIn">
+      <form method="GET" action="{{ url_for('admin.admin_search') }}" class="search-form">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="filter" class="form-label">Filter By</label>
+          <select name="filter" id="filter" class="form-select">
+            <option value="location" {% if request.args.get('filter')=='location' %}selected{% endif %}>Location
+            </option>
+            <option value="user" {% if request.args.get('filter')=='user' %}selected{% endif %}>User (Email/Name)
+            </option>
+          </select>
         </div>
-      </div>
 
-      <!-- Search Box -->
-      <div class="mb-5">
-        <h2 class="section-title mb-3">Search Parking Lots</h2>
-        <form method="GET" action="{{ url_for('admin.admin_search') }}" class="row g-3 align-items-center">
-          <div class="col-auto">
-            <select name="filter" class="form-select">
-              <option value="user" {% if request.args.get('filter') == 'user' %}selected{% endif %}>User ID</option>
-              <option value="location" {% if request.args.get('filter') == 'location' %}selected{% endif %}>Location</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <input type="text" class="form-control" name="query" placeholder="Enter search term" value="{{ request.args.get('query', '') }}" required>
-          </div>
-          <div class="col-auto">
-            <button type="submit" class="btn btn-outline-info">Search</button>
-          </div>
-        </form>
-      </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="query" class="form-label">Search Query</label>
+          <input type="text" class="form-control" name="query" id="query"
+            placeholder="Enter location name, user email, or name..." value="{{ request.args.get('query', '') }}"
+            required autofocus>
+        </div>
 
-      <!-- Filtered Parking Lot Results -->
-      <div class="row">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="opacity: 0;">Search</label>
+          <button type="submit" class="btn btn-primary">
+            🔍 Search
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results -->
+    {% if query %}
+    <div class="results-header">
+      <h2 class="results-title">Search Results</h2>
+      <div class="results-count">
         {% if parking_lots %}
-          {% for lot in parking_lots %}
-            <div class="col-md-4">
-              <div class="parking-card text-white">
-                <h5>{{ lot.location_name }}</h5>
-                <a href="{{ url_for('admin.edit_lot', lot_id=lot.id) }}" class="text-info me-2">Edit</a> |
-                <a href="{{ url_for('admin.delete_lot', lot_id=lot.id)}}" onclick="return confirm('Are you sure?')" class="text-danger ms-2">Delete</a>
-                <p class="mt-2">
-                  {% if filter_by == 'user' %}
-                    Occupied by user (red): {{ user_booked_slots_per_lot[lot.id] if lot.id in user_booked_slots_per_lot else 0 }} / {{ lot.total_slots }}
-                  {% elif filter_by == 'location' %}
-                    Total occupied (yellow): {{ lot_occupied_spots[lot.id] if lot.id in lot_occupied_spots else 0 }} / {{ lot.total_slots }}
-                  {% endif %}
-                </p>
-
-                <div class="d-flex flex-wrap gap-1">
-                  {% for spot in lot.spots[:10] %}
-                    {% if spot.is_available %}
-                      <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" class="badge bg-success">A</a>
-                    {% else %}
-                      <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" 
-                        class="badge {% if filter_by == 'user' and spot.id|string in user_booked_spot_ids %}bg-danger{% else %}bg-warning{% endif %}">
-                        O
-                      </a>
-
-                    {% endif %}
-                  {% endfor %}
-                  {% if lot.spots|length > 10 %}
-                    <span class="badge bg-secondary">+{{ lot.spots|length - 10 }}</span>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          {% endfor %}
+        Found {{ parking_lots | length }} lot{{ 's' if parking_lots | length != 1 else '' }}
         {% else %}
-          <div class="text-muted">No matching parking lots found.</div>
+        No results found
         {% endif %}
       </div>
-
     </div>
+
+    {% if parking_lots %}
+    <div class="parking-grid animate-fadeIn">
+      {% for lot in parking_lots %}
+      <div class="parking-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">{{ lot.location_name }}</div>
+            <div style="font-size: 0.875rem; color: var(--text-muted);">
+              <span class="badge badge-primary">#{{ lot.id }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <a href="{{ url_for('admin.edit_lot', lot_id=lot.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+            <a href="{{ url_for('admin.delete_lot', lot_id=lot.id) }}" class="btn btn-danger btn-sm"
+              onclick="return confirm('Are you sure you want to delete this lot?')">
+              Delete
+            </a>
+          </div>
+        </div>
+
+        <div class="occupancy-info">
+          <div class="occupancy-label">
+            {% if filter_by == 'user' %}
+            Spots booked by this user
+            {% else %}
+            Total occupancy
+            {% endif %}
+          </div>
+          <div class="occupancy-value">
+            {% if filter_by == 'user' %}
+            {{ user_booked_slots_per_lot[lot.id] if lot.id in user_booked_slots_per_lot else 0 }} / {{ lot.total_slots
+            }} spots
+            {% else %}
+            {{ lot_occupied_spots[lot.id] if lot.id in lot_occupied_spots else 0 }} / {{ lot.total_slots }} occupied
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="spot-grid-container">
+          <div class="spot-grid-label">Parking Spots Preview</div>
+          <div class="spot-grid">
+            {% for spot in lot.spots[:15] %}
+            {% if spot.is_available %}
+            <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}" class="spot-badge spot-available"
+              title="Available - {{ spot.spot_number }}">
+              {{ spot.spot_number }}
+            </a>
+            {% else %}
+            <a href="{{ url_for('dashboard.view_spot', spot_id=spot.id) }}"
+              class="spot-badge {% if filter_by == 'user' and spot.id|string in user_booked_spot_ids %}spot-user-booked{% else %}spot-occupied{% endif %}"
+              title="{% if filter_by == 'user' and spot.id|string in user_booked_spot_ids %}Booked by searched user{% else %}Occupied{% endif %} - {{ spot.spot_number }}">
+              {{ spot.spot_number }}
+            </a>
+            {% endif %}
+            {% endfor %}
+            {% if lot.spots | length > 15 %}
+            <div class="spot-badge spot-more" title="{{ lot.spots | length - 15 }} more spots">
+              +{{ lot.spots | length - 15 }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state animate-fadeIn">
+      <div class="empty-state-icon">🔍</div>
+      <div class="empty-state-text">No matching parking lots found</div>
+      <div class="empty-state-hint">Try adjusting your search query or filter</div>
+    </div>
+    {% endif %}
+    {% endif %}
   </div>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
+
 </html>

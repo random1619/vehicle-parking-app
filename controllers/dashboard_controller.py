@@ -48,15 +48,16 @@ def user_summary():
 
 
 # for admin
-@dashboard_bp.route('/admin/dashboard')
-@login_required
-def admin_dashboard():
-    lots = ParkingLot.query.options(db.joinedload(ParkingLot.spots)).all()
-    # Add a new property dynamically for each lot: occupied_slots
-    for lot in lots:
-        lot.occupied_slots = sum(not spot.is_available for spot in lot.spots)
+# Removed - admin dashboard now handled by admin_controller.py
+# @dashboard_bp.route('/admin/dashboard')
+# @login_required
+# def admin_dashboard():
+#     lots = ParkingLot.query.options(db.joinedload(ParkingLot.spots)).all()
+#     # Add a new property dynamically for each lot: occupied_slots
+#     for lot in lots:
+#         lot.occupied_slots = sum(not spot.is_available for spot in lot.spots)
     
-    return render_template('dashboard_admin.html', parking_lots = lots)  # make sure this file exists!
+#     return render_template('dashboard_admin.html', parking_lots = lots)  # make sure this file exists!
 
 # admin users
 @dashboard_bp.route('/admin/users')

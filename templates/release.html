@@ -1,77 +1,198 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <title>Release Parking Spot</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Release Parking - Parking App</title>
   <link rel="stylesheet" href="/static/style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <style>
     body {
-      background: url('/static/background_black.png') no-repeat center center fixed;
-      background-size: cover;
-      font-family: 'Segoe UI', sans-serif;
-      color: #fff;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
     }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      border-radius: 16px;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-      padding: 2rem 3rem;
-      max-width: 600px;
-      margin: 3rem auto;
+
+    .release-container {
+      width: 100%;
+      max-width: 650px;
+      animation: slideInUp 0.5s ease;
     }
-    .form-label {
-      color: #aadfff;
-      font-weight: 500;
+
+    .release-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-lg);
     }
-    .form-control {
-      background-color: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: #727272ff;
+
+    .release-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
     }
-    .form-control::placeholder {
-      color: #ccc;
+
+    .release-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--warning);
+      margin-bottom: 0.5rem;
     }
-    .form-control:focus {
-      background-color: rgba(255, 255, 255, 0.25);
-      color: #fff;
+
+    .release-subtitle {
+      color: var(--text-muted);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .summary-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+    }
+
+    .summary-label {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .summary-value {
+      color: var(--text-primary);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .cost-breakdown {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+      border: 2px solid var(--warning);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .cost-title {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 1rem;
+    }
+
+    .cost-amount {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--warning), var(--danger-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .cost-detail {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-top: 0.5rem;
+    }
+
+    .warning-box {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid var(--warning);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 2rem;
+      color: var(--warning);
+    }
+
+    .form-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .summary-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .form-actions {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body>
-  <div class="glass-card">
-    <h3 class="text-center text-warning mb-4">Release the Parking Spot</h3>
-    <form method="POST">
-      <div class="mb-3">
-        <label class="form-label">Spot ID</label>
-        <input type="text" class="form-control" name="spot_id" value="{{ spot.spot_number }}" readonly />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Vehicle Number</label>
-        <input type="text" class="form-control" name="vehicle_number" value="{{ booking.vehicle_no }}" readonly />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Parking Time</label>
-        <input type="text" class="form-control" name="parking_time" value="{{ booking.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}" readonly />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Releasing Time</label>
-        <input type="text" class="form-control" name="release_time" value="{{ release_time.strftime('%Y-%m-%d %H:%M:%S') }}" readonly />  
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Duration (Hours)</label>
-        <input type="text" class="form-control" value="{{ duration_hours }}" readonly />
-      </div>
-      <div class="mb-4">
-        <label class="form-label">Total Cost (₹)</label>
-        <input type="text" class="form-control" name="total_cost" value="{{ total_cost }}" readonly />
+  <div class="release-container">
+    <div class="release-card">
+      <div class="release-header">
+        <h1 class="release-title">⚠️ Release Parking</h1>
+        <p class="release-subtitle">Review your parking session details</p>
       </div>
 
-      <div class="d-flex justify-content-center gap-3">
-        <button type="submit" class="btn btn-primary px-4">Release</button>
-        <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary px-4">Cancel</a>
+      <!-- Booking Summary -->
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-label">Vehicle Number</div>
+          <div class="summary-value">{{ booking.vehicle_no }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Spot Number</div>
+          <div class="summary-value">{{ spot.spot_number }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Location</div>
+          <div class="summary-value" style="font-size: 1rem;">{{ spot.lot.location_name }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Check-in Time</div>
+          <div class="summary-value" style="font-size: 1rem;">{{ booking.timestamp.strftime('%H:%M, %d %b') }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Release Time</div>
+          <div class="summary-value" style="font-size: 1rem;">{{ release_time.strftime('%H:%M, %d %b') }}</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-label">Duration</div>
+          <div class="summary-value">{{ duration_hours }} hour{{ 's' if duration_hours != 1 else '' }}</div>
+        </div>
       </div>
-    </form>
+
+      <!-- Cost Breakdown -->
+      <div class="cost-breakdown">
+        <div class="cost-title">Total Amount Due</div>
+        <div class="cost-amount">₹{{ total_cost }}</div>
+        <div class="cost-detail">{{ duration_hours }} hours × ₹{{ spot.lot.price }}/hour</div>
+      </div>
+
+      <!-- Warning Message -->
+      <div class="warning-box">
+        <strong>⚠️ Important:</strong> Once you release this spot, you cannot undo this action. Please confirm the
+        details before proceeding.
+      </div>
+
+      <!-- Action Buttons -->
+      <form method="POST">
+        <div class="form-actions">
+          <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-danger">Confirm Release</button>
+        </div>
+      </form>
+    </div>
   </div>
 </body>
 
