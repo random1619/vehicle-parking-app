@@ -1,189 +1,211 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Admin Summary</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      background-color: white;
-    }
-    .navbar-custom {
-      background-color: #d4f4dc;
-      padding: 12px 20px;
-    }
-    .navbar-custom a {
-      font-weight: bold;
-      color: #000;
-      text-decoration: none;
-      margin: 0 10px;
-    }
-    .navbar-custom .welcome {
-      color: red;
-      font-weight: bold;
-    }
-    .navbar-custom .profile-icon {
-      font-size: 1.4rem;
-      color: #0d6efd;
-      cursor: pointer;
-    }
-    .summary-heading {
-      font-size: 20px;
-      font-weight: bold;
-      color: #ff8000;
-      margin-top: 30px;
-    }
-    .charts-row {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-top: 40px;
-      flex-wrap: wrap;
-    }
-    .chart-box {
-      border: 2px solid #000;
-      border-radius: 15px;
-      padding: 20px;
-      text-align: center;
-      width: 400px;
-      background-color: #fff;
-    }
-    .chart-placeholder {
-      height: 300px;
-      background: #f1f1f1;
-      border-radius: 10px;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .chart-title {
-      font-weight: bold;
-      font-size: 16px;
-    }
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
 
-<div class="navbar-custom d-flex justify-content-between align-items-center">
-  <div class="d-flex align-items-center">
-    <span class="welcome me-3">Welcome to Admin</span>
-        <a href="{{ url_for('admin.dashboard') }}" class="nav-link-custom">Home</a>
-        <a href="{{ url_for('admin.view_users') }}" class="nav-link-custom">Users</a>
-        <a href="{{ url_for('admin.admin_search') }}" class="nav-link-custom">Search</a>
-        <a href="{{ url_for('dashboard.admin_summary') }}" class="nav-link-custom">Summary</a>
-        <a href="{{ url_for('auth.logout') }}" class="nav-link-custom">Logout</a>
-  </div>
-  <a href="{{ url_for('dashboard.edit_profile') }}"><i class="bi bi-person-circle profile-icon"></i></a>
-</div>
+{% block title %}Admin Summary - Parking Ops{% endblock %}
 
-<div class="container text-center">
-  <div class="summary-heading">Summary shows statistical charts</div>
-
-  <div class="charts-row">
-    <div class="chart-box">
-      <div class="chart-placeholder">
-        <canvas id="donutChart" width="360" height="260"></canvas>
-      </div>
-      <div class="chart-title">Revenue from each parking lot</div>
-    </div>
-
-    <div class="chart-box">
-      <div class="chart-placeholder">
-        <canvas id="barChart" width="360" height="260"></canvas>
-      </div>
-      <div class="chart-title">Summary on available and occupied parking lots</div>
-    </div>
-  </div>
-</div>
-
+{% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="ops-shell">
+  {% include "partials/admin_sidebar.html" %}
+
+  <main class="ops-main">
+    <header class="page-header">
+      <p class="breadcrumb">Operations / Summary</p>
+      <h1 class="page-title">Operational Summary</h1>
+      <p class="page-subtitle">Revenue, occupancy and demand trends with export tools.</p>
+      <div class="page-actions">
+        <a href="{{ url_for('admin.export_bookings_csv') }}" class="btn btn-secondary btn-sm">Export Bookings CSV</a>
+        <a href="{{ url_for('admin.export_invoices_csv') }}" class="btn btn-secondary btn-sm">Export Invoices CSV</a>
+      </div>
+    </header>
+
+    <section class="split-grid" style="margin-bottom: 16px;">
+      <article class="chart-card">
+        <h2 class="chart-title">Revenue by Lot</h2>
+        <p class="chart-meta">Estimated from bookings and lot pricing.</p>
+        <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+      </article>
+
+      <article class="chart-card">
+        <h2 class="chart-title">Available vs Occupied</h2>
+        <p class="chart-meta">Current slot distribution per lot.</p>
+        <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+      </article>
+    </section>
+
+    <section class="split-grid">
+      <article class="chart-card">
+        <h2 class="chart-title">Bookings by Hour (Last 7 Days)</h2>
+        <p class="chart-meta">Useful for staffing and peak-hour planning.</p>
+        <div class="chart-wrap"><canvas id="hourlyChart"></canvas></div>
+      </article>
+
+      <article class="chart-card">
+        <h2 class="chart-title">Top Lots by Usage</h2>
+        <p class="chart-meta">Ranking by booking volume with revenue indicator.</p>
+        <div class="table-wrap">
+          <table class="ops-table" id="topLotsTable">
+            <thead>
+              <tr>
+                <th>Lot</th>
+                <th>Bookings</th>
+                <th>Revenue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="3" class="notice">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
 <script>
-  // Donut Chart: Revenue from each lot
-  fetch('/admin/lot_revenue_data')
-    .then(response => {
-      if (!response.ok) throw new Error("Failed to fetch revenue data");
-      return response.json();
-    })
-    .then(data => {
-      const labels = data.map(item => item.lot);
-      const values = data.map(item => item.revenue);
-      const ctx = document.getElementById('donutChart').getContext('2d');
+  const axisColor = '#6B7280';
+  const gridColor = '#E5E7EB';
 
-      new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'Revenue',
-            data: values,
-            backgroundColor: ['#4caf50', '#ff9800', '#2196f3', '#e91e63', '#9c27b0'],
-            borderWidth: 1
-          }]
-        },
-        options: {
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
-        }
-      });
-    })
-    .catch(err => console.error("Revenue Chart Error:", err));
-
-  // Bar Chart: Available vs. Occupied
-  fetch('/admin/lot_occupancy_data')
-    .then(response => {
-      if (!response.ok) throw new Error("Failed to fetch occupancy data");
-      return response.json();
-    })
-    .then(data => {
-      const labels = data.map(item => item.lot);
-      const available = data.map(item => item.available);
-      const occupied = data.map(item => item.occupied);
-      const ctx = document.getElementById('barChart').getContext('2d');
-
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Available',
-              data: available,
-              backgroundColor: '#4caf50'
-            },
-            {
-              label: 'Occupied',
-              data: occupied,
-              backgroundColor: '#f44336'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
+  function buildDonut() {
+    fetch('/admin/lot_revenue_data')
+      .then((response) => response.json())
+      .then((data) => {
+        new Chart(document.getElementById('donutChart').getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: data.map((item) => item.lot),
+            datasets: [{
+              label: 'Revenue',
+              data: data.map((item) => item.revenue),
+              backgroundColor: ['#3B5BDB', '#2F9E44', '#E03131', '#0EA5E9', '#F59E0B', '#14B8A6'],
+              borderColor: '#FFFFFF',
+              borderWidth: 2,
+            }],
           },
-          plugins: {
-            legend: {
-              position: 'bottom'
-            }
-          }
+          options: {
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: axisColor },
+              },
+            },
+          },
+        });
+      })
+      .catch((error) => console.error(error));
+  }
+
+  function buildOccupancyBar() {
+    fetch('/admin/lot_occupancy_data')
+      .then((response) => response.json())
+      .then((data) => {
+        new Chart(document.getElementById('barChart').getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: data.map((item) => item.lot),
+            datasets: [
+              { label: 'Available', data: data.map((item) => item.available), backgroundColor: '#2F9E44' },
+              { label: 'Occupied', data: data.map((item) => item.occupied), backgroundColor: '#E03131' },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { color: axisColor, precision: 0 },
+                grid: { color: gridColor },
+              },
+              x: {
+                ticks: { color: axisColor },
+                grid: { display: false },
+              },
+            },
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: axisColor },
+              },
+            },
+          },
+        });
+      })
+      .catch((error) => console.error(error));
+  }
+
+  function buildHourlyChart() {
+    fetch('/admin/analytics/hourly_data')
+      .then((response) => response.json())
+      .then((data) => {
+        new Chart(document.getElementById('hourlyChart').getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: data.map((item) => item.hour),
+            datasets: [{
+              label: 'Bookings',
+              data: data.map((item) => item.count),
+              borderColor: '#3B5BDB',
+              backgroundColor: 'rgba(59, 91, 219, 0.12)',
+              fill: true,
+              tension: 0.25,
+            }],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: { color: axisColor, precision: 0 },
+                grid: { color: gridColor },
+              },
+              x: {
+                ticks: { color: axisColor },
+                grid: { display: false },
+              },
+            },
+            plugins: {
+              legend: {
+                labels: { color: axisColor },
+              },
+            },
+          },
+        });
+      })
+      .catch((error) => console.error(error));
+  }
+
+  function buildTopLotsTable() {
+    fetch('/admin/analytics/top_lots_data')
+      .then((response) => response.json())
+      .then((rows) => {
+        const tbody = document.querySelector('#topLotsTable tbody');
+        if (!tbody) return;
+
+        if (!rows.length) {
+          tbody.innerHTML = '<tr><td colspan="3" class="notice">No data available.</td></tr>';
+          return;
         }
-      });
-    })
-    .catch(err => console.error("Occupancy Chart Error:", err));
+
+        tbody.innerHTML = rows.map((item) => (
+          `<tr>
+            <td>${item.lot}</td>
+            <td>${item.bookings}</td>
+            <td>INR ${Number(item.revenue).toFixed(2)}</td>
+          </tr>`
+        )).join('');
+      })
+      .catch((error) => console.error(error));
+  }
+
+  buildDonut();
+  buildOccupancyBar();
+  buildHourlyChart();
+  buildTopLotsTable();
 </script>
-
-
-
-</body>
-</html>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice History - Parking App{% endblock %}
+
+{% block nav %}
+{% include "partials/user_topbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <div class="content-wrap" style="max-width: 980px;">
+    <a href="{{ url_for('dashboard.user_dashboard') }}" class="back-link">Back to Dashboard</a>
+
+    <header class="page-header">
+      <p class="breadcrumb">User / Invoices</p>
+      <h1 class="page-title">Invoice History</h1>
+      <p class="page-subtitle">Payment and receipt history for released bookings.</p>
+    </header>
+
+    <section class="card">
+      {% if invoices %}
+      <div class="table-toolbar">
+        <h2 class="section-title">Invoices</h2>
+        <button class="btn btn-secondary btn-sm js-density-toggle" data-target="#invoiceTableWrap">Compact Rows</button>
+      </div>
+      <div class="table-wrap" id="invoiceTableWrap">
+        <table class="ops-table">
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Booking</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Issued</th>
+              <th>Paid</th>
+              <th>Ref</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for invoice in invoices %}
+            <tr>
+              <td><span class="id-pill">{{ invoice.invoice_no }}</span></td>
+              <td>#{{ invoice.booking_id }}</td>
+              <td>{{ invoice.currency }} {{ '%.2f'|format(invoice.amount) }}</td>
+              <td><span class="badge {% if invoice.status == 'paid' %}badge-success{% else %}badge-neutral{% endif %}">{{ invoice.status }}</span></td>
+              <td>{{ invoice.issued_at.strftime('%Y-%m-%d %H:%M') if invoice.issued_at else '-' }}</td>
+              <td>{{ invoice.paid_at.strftime('%Y-%m-%d %H:%M') if invoice.paid_at else '-' }}</td>
+              <td>{{ invoice.payment_ref or '-' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <h2>No invoices yet</h2>
+        <p>Invoices are created when an active booking is released.</p>
+      </div>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

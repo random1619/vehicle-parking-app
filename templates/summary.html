@@ -1,241 +1,136 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Summary - Parking App</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
-      min-height: 100vh;
-      padding-bottom: 3rem;
-    }
+{% block title %}User Summary - Parking App{% endblock %}
 
-    .summary-container {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem;
-      animation: fadeIn 0.5s ease;
-    }
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
-    .page-header {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
+{% block nav %}
+{% include "partials/user_topbar.html" %}
+{% endblock %}
 
-    .page-title {
-      font-size: 2rem;
-      font-weight: 800;
-      background: linear-gradient(135deg, var(--primary-light), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-    }
+{% block content %}
+<div class="page-shell">
+  <div class="content-wrap" style="max-width: 980px;">
+    <header class="page-header">
+      <p class="breadcrumb">User / Summary</p>
+      <h1 class="page-title">Usage Summary</h1>
+      <p class="page-subtitle">How frequently each lot has been used in your bookings.</p>
+    </header>
 
-    .page-subtitle {
-      color: var(--text-muted);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 1.5rem;
-    }
-
-    .chart-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-lg);
-    }
-
-    .chart-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .chart-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--primary-light);
-      margin: 0;
-    }
-
-    .chart-meta {
-      color: var(--text-muted);
-      font-size: 0.875rem;
-    }
-
-    .chart-wrap {
-      position: relative;
-      width: 100%;
-      min-height: 360px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--text-muted);
-    }
-
-    .empty-state strong {
-      display: block;
-      color: var(--text-primary);
-      margin-bottom: 0.5rem;
-    }
-  </style>
-</head>
-
-<body>
-  <!-- Navigation (match user dashboard) -->
-  <nav class="navbar">
-    <div class="navbar-container">
-      <div class="navbar-brand">🅿️ Parking App</div>
-      <ul class="navbar-nav">
-        <li><a href="{{ url_for('dashboard.user_dashboard') }}" class="nav-link">Home</a></li>
-        <li><a href="{{ url_for('dashboard.user_summary') }}" class="nav-link active">Summary</a></li>
-        <li><a href="{{ url_for('dashboard.edit_profile') }}" class="nav-link">Profile</a></li>
-        <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Logout</a></li>
-        <li>
-          <a href="{{ url_for('dashboard.edit_profile') }}">
-            <img src="/static/profile pics.png" alt="Profile" class="profile-avatar">
-          </a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-
-  <div class="summary-container">
-    <div class="page-header">
-      <div class="page-title">Usage Summary</div>
-      <div class="page-subtitle">How often you’ve used each parking lot</div>
-    </div>
-
-    <div class="grid">
-      <div class="chart-card">
-        <div class="chart-header">
-          <h2 class="chart-title">Bookings per Lot</h2>
-          <div class="chart-meta" id="chartMeta">Loading…</div>
+    <section class="chart-card">
+      <h2 class="chart-title">Bookings per Lot</h2>
+      <p class="chart-meta" id="chartMeta">Loading data...</p>
+      <div class="chart-wrap fixed">
+        <div id="chartSkeleton" aria-hidden="true">
+          <div class="skeleton bar" style="width: 40%;"></div>
+          <div class="skeleton bar" style="width: 56%;"></div>
+          <div class="skeleton bar" style="width: 28%;"></div>
+          <div class="skeleton chart"></div>
         </div>
-        <div class="chart-wrap">
-          <canvas id="usageChart"></canvas>
-          <div id="emptyState" class="empty-state" style="display:none;">
-            <strong>No data yet</strong>
-            Make at least one booking to see your summary.
-          </div>
+        <canvas id="usageChart" style="display: none;"></canvas>
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <h2>No data yet</h2>
+          <p>Make at least one booking to see this summary.</p>
         </div>
       </div>
-    </div>
+    </section>
   </div>
+</div>
+{% endblock %}
 
-  <script>
-    let usageChart;
+{% block extra_scripts %}
+<script>
+  let usageChart;
 
-    function setMeta(text) {
-      const el = document.getElementById('chartMeta');
-      if (el) el.textContent = text;
-    }
+  function setMeta(text) {
+    const el = document.getElementById('chartMeta');
+    if (el) el.textContent = text;
+  }
 
-    function showEmpty(show) {
-      const empty = document.getElementById('emptyState');
-      const canvas = document.getElementById('usageChart');
-      if (!empty || !canvas) return;
-      empty.style.display = show ? 'block' : 'none';
-      canvas.style.display = show ? 'none' : 'block';
-    }
+  function toggleViews({ showSkeleton = false, showCanvas = false, showEmpty = false }) {
+    const skeleton = document.getElementById('chartSkeleton');
+    const empty = document.getElementById('emptyState');
+    const canvas = document.getElementById('usageChart');
 
-    async function drawChart() {
-      try {
-        const response = await fetch('/user/spot_summary_data');
-        const data = await response.json();
+    if (skeleton) skeleton.style.display = showSkeleton ? 'block' : 'none';
+    if (canvas) canvas.style.display = showCanvas ? 'block' : 'none';
+    if (empty) empty.style.display = showEmpty ? 'block' : 'none';
+  }
 
-        if (!Array.isArray(data) || data.length === 0) {
-          setMeta('0 lots');
-          showEmpty(true);
-          return;
-        }
+  async function drawChart() {
+    toggleViews({ showSkeleton: true, showCanvas: false, showEmpty: false });
 
-        const labels = data.map(item => item.spot);
-        const usageCounts = data.map(item => item.usage);
+    try {
+      const response = await fetch('/user/spot_summary_data');
+      const data = await response.json();
 
-        setMeta(`${labels.length} lot${labels.length === 1 ? '' : 's'}`);
-        showEmpty(false);
+      if (!Array.isArray(data) || data.length === 0) {
+        setMeta('0 lots');
+        toggleViews({ showSkeleton: false, showCanvas: false, showEmpty: true });
+        return;
+      }
 
-        const ctx = document.getElementById('usageChart');
-        if (!ctx) return;
+      const labels = data.map((item) => item.spot);
+      const usageCounts = data.map((item) => item.usage);
 
-        if (usageChart) {
-          usageChart.destroy();
-        }
+      setMeta(`${labels.length} lot${labels.length === 1 ? '' : 's'}`);
+      toggleViews({ showSkeleton: false, showCanvas: true, showEmpty: false });
 
-        usageChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels,
-            datasets: [{
-              label: 'Total Bookings',
-              data: usageCounts,
-              backgroundColor: 'rgba(99, 102, 241, 0.35)',
-              borderColor: 'rgba(99, 102, 241, 0.9)',
-              borderWidth: 1,
-              borderRadius: 10,
-              maxBarThickness: 48
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                labels: {
-                  color: '#cbd5e1'
-                }
-              },
-              tooltip: {
-                callbacks: {
-                  label: (ctx) => ` ${ctx.raw} booking${ctx.raw === 1 ? '' : 's'}`
-                }
-              }
+      if (usageChart) {
+        usageChart.destroy();
+      }
+
+      usageChart = new Chart(document.getElementById('usageChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Total Bookings',
+            data: usageCounts,
+            backgroundColor: '#3B5BDB',
+            borderRadius: 8,
+            maxBarThickness: 48
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: { color: '#6B7280' }
             },
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: { color: '#94a3b8' },
-                grid: { color: 'rgba(148, 163, 184, 0.15)' }
-              },
-              x: {
-                ticks: { color: '#94a3b8' },
-                grid: { display: false }
+            tooltip: {
+              callbacks: {
+                label: (ctx) => ` ${ctx.raw} booking${ctx.raw === 1 ? '' : 's'}`
               }
             }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#6B7280', precision: 0 },
+              grid: { color: '#E5E7EB' }
+            },
+            x: {
+              ticks: { color: '#6B7280' },
+              grid: { display: false }
+            }
           }
-        });
-      } catch (error) {
-        console.error('Chart error:', error);
-        setMeta('Error');
-        showEmpty(true);
-        const empty = document.getElementById('emptyState');
-        if (empty) empty.innerHTML = '<strong>Could not load data</strong>Please try again.';
+        }
+      });
+    } catch (error) {
+      console.error('Chart error:', error);
+      setMeta('Error');
+      toggleViews({ showSkeleton: false, showCanvas: false, showEmpty: true });
+      const empty = document.getElementById('emptyState');
+      if (empty) {
+        empty.innerHTML = '<h2>Could not load data</h2><p>Please try again.</p>';
       }
     }
+  }
 
-    drawChart();
-  </script>
-</body>
-
-</html>
+  drawChart();
+</script>
+{% endblock %}

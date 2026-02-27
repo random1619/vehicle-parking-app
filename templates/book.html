@@ -1,167 +1,202 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Book Parking - Parking App</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-    }
+{% block title %}Book Parking - Parking App{% endblock %}
 
-    .booking-container {
-      width: 100%;
-      max-width: 600px;
-      animation: slideInUp 0.5s ease;
-    }
+{% block nav %}
+{% include "partials/user_topbar.html" %}
+{% endblock %}
 
-    .booking-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2.5rem;
-      box-shadow: var(--shadow-lg);
-    }
+{% block content %}
+<div class="page-shell">
+  <div class="content-wrap" style="max-width: 760px;">
+    <a href="{{ url_for('dashboard.user_dashboard') }}" class="back-link">Back to Dashboard</a>
 
-    .booking-header {
-      text-align: center;
-      margin-bottom: 2rem;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid var(--border);
-    }
+    <header class="page-header">
+      <p class="breadcrumb">User / Booking</p>
+      <h1 class="page-title">Book Parking Spot</h1>
+      <p class="page-subtitle">Immediate booking includes a temporary 5-minute spot hold.</p>
+    </header>
 
-    .booking-title {
-      font-size: 2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--primary-light), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-    }
-
-    .booking-subtitle {
-      color: var(--text-muted);
-    }
-
-    .lot-info {
-      background: rgba(99, 102, 241, 0.1);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      border-radius: var(--radius-md);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .lot-info-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.75rem;
-    }
-
-    .lot-info-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .lot-info-label {
-      color: var(--text-muted);
-      font-size: 0.875rem;
-    }
-
-    .lot-info-value {
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    .spot-display {
-      background: linear-gradient(135deg, var(--success), var(--success-light));
-      color: white;
-      padding: 1.5rem;
-      border-radius: var(--radius-md);
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .spot-label {
-      font-size: 0.875rem;
-      opacity: 0.9;
-      margin-bottom: 0.5rem;
-    }
-
-    .spot-number {
-      font-size: 3rem;
-      font-weight: 800;
-    }
-
-    .form-actions {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
-    @media (max-width: 640px) {
-      .form-actions {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="booking-container">
-    <div class="booking-card">
-      <div class="booking-header">
-        <h1 class="booking-title">Book Parking Spot</h1>
-        <p class="booking-subtitle">Confirm your booking details</p>
-      </div>
-
-      <!-- Parking Lot Information -->
-      <div class="lot-info">
-        <div class="lot-info-row">
-          <span class="lot-info-label">Location</span>
-          <span class="lot-info-value">{{ lot.location_name }}</span>
+    <section class="card" style="margin-bottom: 16px;">
+      <div class="simple-grid two" style="margin-bottom: 14px;">
+        <div class="card-muted">
+          <div class="notice" style="margin-bottom: 4px;">Location</div>
+          <div style="font-weight: 600;">{{ lot.location_name }}</div>
+          <div class="notice">{{ lot.address }}</div>
         </div>
-        <div class="lot-info-row">
-          <span class="lot-info-label">Address</span>
-          <span class="lot-info-value">{{ lot.address }}</span>
-        </div>
-        <div class="lot-info-row">
-          <span class="lot-info-label">Price per Hour</span>
-          <span class="lot-info-value" style="color: var(--success); font-size: 1.125rem;">₹{{ lot.price }}</span>
+        <div class="card-muted">
+          <div class="notice" style="margin-bottom: 4px;">Price per Hour</div>
+          <div class="price">{{ lot.price }}</div>
         </div>
       </div>
 
-      <!-- Assigned Spot -->
-      <div class="spot-display">
-        <div class="spot-label">Your Assigned Spot</div>
-        <div class="spot-number">{{ spot.spot_number }}</div>
+      {% if hold and spot %}
+      <div class="card-muted" style="margin-bottom: 14px; text-align: center;">
+        <div class="notice" style="margin-bottom: 4px;">Locked Spot (temporary hold)</div>
+        <span class="id-pill" style="font-size: 1rem; padding: 8px 16px;">{{ spot.spot_number }}</span>
+        <div class="hold-progress">
+          <div class="hold-progress-track">
+            <div id="holdProgressFill" class="hold-progress-fill" data-initial="{{ hold_seconds_remaining }}"></div>
+          </div>
+          <div class="hold-progress-meta">
+            <span>Hold expires in <span id="holdCountdown" data-seconds="{{ hold_seconds_remaining }}">{{ hold_seconds_remaining }}</span>s</span>
+            <span id="holdStateLabel">Stable</span>
+          </div>
+        </div>
       </div>
+      {% else %}
+      <div class="alert alert-warning" style="margin-bottom: 14px;">No immediate spot is available right now. You can still schedule or join waitlist.</div>
+      {% endif %}
 
-      <!-- Booking Form -->
-      <form method="POST">
-        <div class="form-group">
-          <label for="vehicle_number" class="form-label">Vehicle Number</label>
-          <input type="text" name="vehicle_number" id="vehicle_number" class="form-control"
-            placeholder="Enter your vehicle number (e.g., ABC1234)" required autofocus
-            style="text-transform: uppercase;">
+      <form method="POST" id="bookingForm">
+        <div class="booking-stepper" aria-label="Booking Steps">
+          <span id="stepBadge1" class="booking-step active">1. Booking Type</span>
+          <span id="stepBadge2" class="booking-step">2. Vehicle & Confirm</span>
         </div>
 
-        <div class="form-actions">
-          <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary">Cancel</a>
-          <button type="submit" class="btn btn-success">Confirm Booking</button>
+        <div id="stepPanel1" class="booking-step-panel active">
+          <div class="form-group">
+            <label for="booking_type" class="form-label">Booking Type</label>
+            <select id="booking_type" name="booking_type" class="form-select">
+              <option value="immediate">Immediate</option>
+              <option value="scheduled">Scheduled</option>
+            </select>
+          </div>
+
+          <div id="scheduleFields" class="simple-grid two" style="display: none;">
+            <div class="form-group">
+              <label for="scheduled_start" class="form-label">Start Time</label>
+              <input type="datetime-local" id="scheduled_start" name="scheduled_start" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="duration_hours" class="form-label">Duration (hours)</label>
+              <input type="number" id="duration_hours" name="duration_hours" class="form-control" min="1" value="1">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary">Cancel</a>
+            <button type="button" class="btn btn-primary" id="nextStepBtn">Continue</button>
+          </div>
+        </div>
+
+        <div id="stepPanel2" class="booking-step-panel">
+          <div class="form-group">
+            <label for="vehicle_id" class="form-label">Saved Vehicle (Optional)</label>
+            <select id="vehicle_id" name="vehicle_id" class="form-select">
+              <option value="">Use manual vehicle number</option>
+              {% for vehicle in vehicles %}
+              <option value="{{ vehicle.id }}">{{ vehicle.plate_number }}{% if vehicle.label %} - {{ vehicle.label }}{% endif %}{% if vehicle.is_default %} (default){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="vehicle_number" class="form-label">Vehicle Number</label>
+            <input type="text" name="vehicle_number" id="vehicle_number" class="form-control" placeholder="Enter vehicle number" style="text-transform: uppercase;">
+            <p class="notice" style="margin-top: 6px;">If a saved vehicle is selected, this field is optional.</p>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="backStepBtn">Back</button>
+            <button type="submit" class="btn btn-success" id="primaryAction">Confirm Booking</button>
+          </div>
+
+          {% if not hold %}
+          <div class="form-actions" style="grid-template-columns: 1fr; margin-top: 10px;">
+            <button type="submit" class="btn btn-primary" name="action" value="waitlist">Join Waitlist</button>
+          </div>
+          {% endif %}
         </div>
       </form>
-    </div>
+    </section>
   </div>
-</body>
+</div>
+{% endblock %}
 
-</html>
+{% block extra_scripts %}
+<script>
+  (function () {
+    const bookingTypeEl = document.getElementById('booking_type');
+    const scheduleFields = document.getElementById('scheduleFields');
+    const primaryAction = document.getElementById('primaryAction');
+
+    const nextStepBtn = document.getElementById('nextStepBtn');
+    const backStepBtn = document.getElementById('backStepBtn');
+    const panel1 = document.getElementById('stepPanel1');
+    const panel2 = document.getElementById('stepPanel2');
+    const badge1 = document.getElementById('stepBadge1');
+    const badge2 = document.getElementById('stepBadge2');
+
+    const countdownEl = document.getElementById('holdCountdown');
+    const progressFill = document.getElementById('holdProgressFill');
+    const holdStateLabel = document.getElementById('holdStateLabel');
+
+    function setStep(step) {
+      const second = step === 2;
+      panel1.classList.toggle('active', !second);
+      panel2.classList.toggle('active', second);
+      badge1.classList.toggle('active', !second);
+      badge2.classList.toggle('active', second);
+    }
+
+    function syncBookingTypeUI() {
+      const isScheduled = bookingTypeEl.value === 'scheduled';
+      scheduleFields.style.display = isScheduled ? 'grid' : 'none';
+      primaryAction.textContent = isScheduled ? 'Schedule Booking' : 'Confirm Booking';
+    }
+
+    function bindStepper() {
+      if (nextStepBtn) {
+        nextStepBtn.addEventListener('click', () => setStep(2));
+      }
+      if (backStepBtn) {
+        backStepBtn.addEventListener('click', () => setStep(1));
+      }
+    }
+
+    function bindCountdown() {
+      if (!countdownEl || !progressFill || !holdStateLabel) {
+        return;
+      }
+
+      let remaining = parseInt(countdownEl.dataset.seconds || '0', 10);
+      const initial = Math.max(remaining, 1);
+
+      const render = () => {
+        countdownEl.textContent = String(Math.max(remaining, 0));
+        const pct = Math.max((remaining / initial) * 100, 0);
+        progressFill.style.width = `${pct}%`;
+
+        progressFill.classList.remove('warn', 'danger');
+        if (remaining <= 30) {
+          progressFill.classList.add('danger');
+          holdStateLabel.textContent = 'Critical';
+        } else if (remaining <= 60) {
+          progressFill.classList.add('warn');
+          holdStateLabel.textContent = 'Warning';
+        } else {
+          holdStateLabel.textContent = 'Stable';
+        }
+      };
+
+      render();
+      const timer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          remaining = 0;
+          render();
+          clearInterval(timer);
+          return;
+        }
+        render();
+      }, 1000);
+    }
+
+    bookingTypeEl.addEventListener('change', syncBookingTypeUI);
+    syncBookingTypeUI();
+    bindStepper();
+    bindCountdown();
+  }());
+</script>
+{% endblock %}

@@ -1,100 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Edit Parking Lot - Admin</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
-      min-height: 100vh;
-      padding: 2rem 0;
-    }
+{% block title %}Edit Parking Lot - Parking Ops{% endblock %}
 
-    .form-container {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 2rem;
-      animation: slideInUp 0.5s ease;
-    }
+{% block content %}
+<div class="ops-shell">
+  {% include "partials/admin_sidebar.html" %}
 
-    .form-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2.5rem;
-      box-shadow: var(--shadow-lg);
-    }
+  <main class="ops-main">
+    <a href="{{ url_for('admin.dashboard') }}" class="back-link">Back to Dashboard</a>
 
-    .form-header {
-      text-align: center;
-      margin-bottom: 2rem;
-      padding-bottom: 2rem;
-      border-bottom: 1px solid var(--border);
-    }
+    <header class="page-header">
+      <p class="breadcrumb">Operations / Parking Lots / Edit</p>
+      <h1 class="page-title">Edit Parking Lot</h1>
+      <p class="page-subtitle">Update lot details and slot count safely.</p>
+    </header>
 
-    .form-title {
-      font-size: 2rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--primary-light), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-subtitle {
-      color: var(--text-muted);
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    @media (max-width: 640px) {
-      .form-row {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--accent);
-      text-decoration: none;
-      margin-bottom: 1.5rem;
-      transition: color var(--transition-fast);
-    }
-
-    .back-link:hover {
-      color: var(--accent-glow);
-    }
-  </style>
-</head>
-
-<body>
-  <div class="form-container">
-    <a href="{{ url_for('admin.dashboard') }}" class="back-link">
-      ← Back to Dashboard
-    </a>
-
-    <div class="form-card">
-      <div class="form-header">
-        <h1 class="form-title">Edit Parking Lot</h1>
-        <p class="form-subtitle">Update parking lot details</p>
-      </div>
-
+    <section class="card" style="max-width: 760px;">
       <form method="POST">
         <div class="form-group">
           <label for="location_name" class="form-label">Location Name</label>
-          <input type="text" name="location_name" id="location_name" class="form-control"
-            value="{{ lot.location_name }}" required autofocus>
+          <input type="text" name="location_name" id="location_name" class="form-control" value="{{ lot.location_name }}" required autofocus>
         </div>
 
         <div class="form-group">
@@ -105,33 +30,27 @@
         <div class="form-row">
           <div class="form-group">
             <label for="pincode" class="form-label">PIN Code</label>
-            <input type="text" name="pincode" id="pincode" class="form-control" value="{{ lot.pincode }}" required
-              pattern="[0-9]{6}">
+            <input type="text" name="pincode" id="pincode" class="form-control" value="{{ lot.pincode }}" required pattern="[0-9]{6}">
           </div>
 
           <div class="form-group">
-            <label for="price" class="form-label">Price per Hour (₹)</label>
-            <input type="number" name="price" id="price" class="form-control" value="{{ lot.price }}" required min="1"
-              step="0.01">
+            <label for="price" class="form-label">Price per Hour</label>
+            <input type="number" name="price" id="price" class="form-control" value="{{ lot.price }}" required min="1" step="0.01">
           </div>
         </div>
 
         <div class="form-group">
           <label for="total_slots" class="form-label">Total Parking Slots</label>
-          <input type="number" name="total_slots" id="total_slots" class="form-control" value="{{ lot.total_slots }}"
-            required min="1">
-          <div style="font-size: 0.875rem; color: var(--text-muted); margin-top: 0.5rem;">
-            Current: {{ lot.total_slots }} slots. Changing this will add or remove spots as needed.
-          </div>
+          <input type="number" name="total_slots" id="total_slots" class="form-control" value="{{ lot.total_slots }}" required min="1">
+          <p class="notice" style="margin-top: 8px;">Current: {{ lot.total_slots }} slots. Increasing adds new spots; decreasing only removes free spots.</p>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+        <div class="form-actions">
           <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
           <button type="submit" class="btn btn-primary">Save Changes</button>
         </div>
       </form>
-    </div>
-  </div>
-</body>
-
-</html>
+    </section>
+  </main>
+</div>
+{% endblock %}

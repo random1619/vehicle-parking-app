@@ -40,6 +40,10 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(graph_bp)
+
+    # Ensure newly added feature tables exist in non-migrated environments.
+    with app.app_context():
+        db.create_all()
     
     @app.before_request
     def ensure_admin_user_exists():

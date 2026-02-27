@@ -1,0 +1,22 @@
+<aside class="ops-sidebar">
+  <a href="{{ url_for('admin.dashboard') }}" class="ops-brand">
+    <span class="ops-brand-mark" aria-hidden="true"></span>
+    <span>Parking Ops</span>
+  </a>
+
+  {% set endpoint = request.endpoint or '' %}
+  <nav class="ops-nav">
+    <a href="{{ url_for('admin.dashboard') }}" class="ops-nav-link {% if endpoint in ['admin.dashboard', 'admin.add_lot', 'admin.edit_lot', 'admin.view_spot'] %}active{% endif %}">Dashboard</a>
+    <a href="{{ url_for('admin.admin_search') }}" class="ops-nav-link {% if endpoint == 'admin.admin_search' %}active{% endif %}">Search</a>
+    <a href="{{ url_for('admin.view_users') }}" class="ops-nav-link {% if endpoint == 'admin.view_users' %}active{% endif %}">Users</a>
+    <a href="{{ url_for('dashboard.admin_summary') }}" class="ops-nav-link {% if endpoint == 'dashboard.admin_summary' %}active{% endif %}">Summary</a>
+    <a href="{{ url_for('auth.logout') }}" class="ops-nav-link">Logout</a>
+  </nav>
+
+  <div class="ops-grow"></div>
+
+  <a href="{{ url_for('dashboard.edit_profile') }}" class="ops-profile">
+    <img src="/static/profile pics.png" alt="Admin profile" class="profile-chip">
+    <span>Admin Profile</span>
+  </a>
+</aside>

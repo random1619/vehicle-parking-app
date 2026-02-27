@@ -1,9 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for,request, flash
 from flask_login import login_required, logout_user, current_user
-from models.models import ParkingLot, ParkingSpot, Booking, User
+from models.models import Booking, NotificationLog, ParkingLot, ParkingSpot, ScheduledBooking, User, WaitlistEntry
 from extensions import db
 from datetime import datetime
 from werkzeug.security import check_password_hash, generate_password_hash
+from services import activate_due_scheduled_bookings, count_bookable_spots_for_lot, get_active_maintenance_map
 dashboard_bp = Blueprint('dashboard', __name__)  # name MUST match 'dashboard'
 
 
@@ -11,20 +12,48 @@ dashboard_bp = Blueprint('dashboard', __name__)  # name MUST match 'dashboard'
 @dashboard_bp.route('/user/dashboard')
 @login_required
 def user_dashboard():
+    activate_due_scheduled_bookings(limit=10)
     bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.timestamp.desc()).all()
     lots = ParkingLot.query.options(db.joinedload(ParkingLot.spots)).all()
-    return render_template('dashboard_user.html', parking_lots=lots, bookings=bookings)  # make sure this file exists!
+    maintenance_map = get_active_maintenance_map()
+
+    for lot in lots:
+        lot.bookable_spots = count_bookable_spots_for_lot(lot.id, current_user.id)
+        lot.maintenance_count = sum(1 for spot in lot.spots if spot.id in maintenance_map)
+
+    waitlist_entries = WaitlistEntry.query.filter_by(
+        user_id=current_user.id,
+        status='waiting',
+    ).order_by(WaitlistEntry.created_at.asc()).all()
+
+    scheduled_bookings = ScheduledBooking.query.filter_by(
+        user_id=current_user.id,
+        status='scheduled',
+    ).order_by(ScheduledBooking.requested_start.asc()).all()
+
+    recent_notifications = NotificationLog.query.filter_by(
+        user_id=current_user.id,
+    ).order_by(NotificationLog.created_at.desc()).limit(5).all()
+
+    return render_template(
+        'dashboard_user.html',
+        parking_lots=lots,
+        bookings=bookings,
+        waitlist_entries=waitlist_entries,
+        scheduled_bookings=scheduled_bookings,
+        recent_notifications=recent_notifications,
+    )
 
 @dashboard_bp.route('/user/book/<int:lot_id>')
 @login_required
 def show_booking_form(lot_id):
-    lot = ParkingLot.query.get_or_404(lot_id)
-    return render_template('book.html', lot=lot)
+    return redirect(url_for('user.book_parking_lot', lot_id=lot_id))
 
 @dashboard_bp.route('/user/release')
 @login_required
 def show_release_form():
-    return render_template('release.html')
+    flash('Select an active booking from your dashboard to release.', 'info')
+    return redirect(url_for('dashboard.user_dashboard'))
     
 # @dashboard_bp.route('/user/summary')
 # @login_required
@@ -218,7 +247,7 @@ def edit_profile():
                 db.session.commit()
                 flash('Profile updated successfully!', 'success')
 
-                return redirect(url_for('dashboard.admin_dashboard' if user.role == 'admin' else 'dashboard.user_dashboard'))
+                return redirect(url_for('admin.dashboard' if user.role == 'admin' else 'dashboard.user_dashboard'))
 
         except Exception as e:
             db.session.rollback()

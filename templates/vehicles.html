@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Vehicles - Parking App{% endblock %}
+
+{% block nav %}
+{% include "partials/user_topbar.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="page-shell">
+  <div class="content-wrap" style="max-width: 900px;">
+    <a href="{{ url_for('dashboard.user_dashboard') }}" class="back-link">Back to Dashboard</a>
+
+    <header class="page-header">
+      <p class="breadcrumb">User / Vehicles</p>
+      <h1 class="page-title">Manage Vehicles</h1>
+      <p class="page-subtitle">Save multiple vehicles and set a default one.</p>
+    </header>
+
+    <section class="card" style="margin-bottom: 18px;">
+      <h2 class="section-title" style="margin-bottom: 12px;">Add Vehicle</h2>
+      <form method="POST">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="plate_number">Vehicle Number</label>
+            <input class="form-control" type="text" id="plate_number" name="plate_number" required style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="label">Label (Optional)</label>
+            <input class="form-control" type="text" id="label" name="label" placeholder="e.g. Personal Car">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label><input type="checkbox" name="is_default"> Set as default vehicle</label>
+        </div>
+        <div class="form-actions">
+          <a href="{{ url_for('dashboard.user_dashboard') }}" class="btn btn-secondary">Cancel</a>
+          <button type="submit" class="btn btn-primary">Save Vehicle</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="table-toolbar">
+        <h2 class="section-title">Saved Vehicles</h2>
+        <button class="btn btn-secondary btn-sm js-density-toggle" data-target="#vehiclesTableWrap">Compact Rows</button>
+      </div>
+      {% if vehicles %}
+      <div class="table-wrap" id="vehiclesTableWrap">
+        <table class="ops-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Vehicle</th>
+              <th>Label</th>
+              <th>Default</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for vehicle in vehicles %}
+            <tr>
+              <td><span class="id-pill">#{{ vehicle.id }}</span></td>
+              <td>{{ vehicle.plate_number }}</td>
+              <td>{{ vehicle.label or '-' }}</td>
+              <td>
+                {% if vehicle.is_default %}
+                <span class="badge badge-success">Default</span>
+                {% else %}
+                <span class="badge badge-neutral">No</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display: flex; gap: 8px;">
+                  {% if not vehicle.is_default %}
+                  <form method="POST" action="{{ url_for('user.set_default_vehicle', vehicle_id=vehicle.id) }}">
+                    <button class="btn btn-secondary btn-sm" type="submit">Set Default</button>
+                  </form>
+                  {% endif %}
+                  <form method="POST" action="{{ url_for('user.delete_vehicle', vehicle_id=vehicle.id) }}" onsubmit="return confirm('Remove this vehicle?');">
+                    <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="notice">No vehicles saved yet.</p>
+      {% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

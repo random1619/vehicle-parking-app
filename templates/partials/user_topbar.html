@@ -1,0 +1,22 @@
+{% set endpoint = request.endpoint or '' %}
+<nav class="topbar">
+  <div class="topbar-inner">
+    <a href="{{ url_for('dashboard.user_dashboard') }}" class="topbar-brand">
+      <span class="ops-brand-mark" aria-hidden="true"></span>
+      <span>Parking App</span>
+    </a>
+    <button class="topbar-toggle" type="button" aria-expanded="false">Menu</button>
+    <div class="topbar-links">
+      <a href="{{ url_for('dashboard.user_dashboard') }}" class="topbar-link {% if endpoint in ['dashboard.user_dashboard', 'user.book_parking_lot', 'user.release_booking'] %}active{% endif %}">Home</a>
+      <a href="{{ url_for('dashboard.user_summary') }}" class="topbar-link {% if endpoint == 'dashboard.user_summary' %}active{% endif %}">Summary</a>
+      <a href="{{ url_for('user.manage_vehicles') }}" class="topbar-link {% if endpoint in ['user.manage_vehicles', 'user.set_default_vehicle', 'user.delete_vehicle'] %}active{% endif %}">Vehicles</a>
+      <a href="{{ url_for('user.invoice_history') }}" class="topbar-link {% if endpoint == 'user.invoice_history' %}active{% endif %}">Invoices</a>
+      <a href="{{ url_for('user.notifications') }}" class="topbar-link {% if endpoint == 'user.notifications' %}active{% endif %}">Notifications</a>
+      <a href="{{ url_for('dashboard.edit_profile') }}" class="topbar-link {% if endpoint == 'dashboard.edit_profile' %}active{% endif %}">Profile</a>
+      <a href="{{ url_for('auth.logout') }}" class="topbar-link">Logout</a>
+      <a href="{{ url_for('dashboard.edit_profile') }}" class="topbar-avatar" aria-label="Profile">
+        <img src="/static/profile pics.png" alt="Profile" class="profile-chip">
+      </a>
+    </div>
+  </div>
+</nav>

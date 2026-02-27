@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Parking App{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  {% block nav %}{% endblock %}
+
+  {% block content %}{% endblock %}
+
+  <div class="toast-stack" id="toastStack">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="toast toast-{{ category }}" role="status" aria-live="polite" data-autohide="true">
+      <span>{{ message }}</span>
+      <button type="button" class="toast-close" aria-label="Close">x</button>
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <script>
+    (function () {
+      function setupToasts() {
+        const stack = document.getElementById('toastStack');
+        if (!stack) return;
+
+        stack.querySelectorAll('.toast').forEach((toast) => {
+          const closeBtn = toast.querySelector('.toast-close');
+          const close = () => {
+            toast.classList.add('toast-hide');
+            setTimeout(() => toast.remove(), 180);
+          };
+
+          if (closeBtn) {
+            closeBtn.addEventListener('click', close);
+          }
+
+          if (toast.dataset.autohide === 'true') {
+            setTimeout(close, 4200);
+          }
+        });
+      }
+
+      function setupTopbarToggle() {
+        document.querySelectorAll('.topbar-toggle').forEach((btn) => {
+          const topbar = btn.closest('.topbar-inner');
+          if (!topbar) return;
+
+          const links = topbar.querySelector('.topbar-links');
+          if (!links) return;
+
+          btn.addEventListener('click', () => {
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+            links.classList.toggle('open', !expanded);
+          });
+
+          links.querySelectorAll('a').forEach((anchor) => {
+            anchor.addEventListener('click', () => {
+              links.classList.remove('open');
+              btn.setAttribute('aria-expanded', 'false');
+            });
+          });
+        });
+      }
+
+      function setupTableDensityToggle() {
+        document.querySelectorAll('.js-density-toggle').forEach((btn) => {
+          const targetSelector = btn.getAttribute('data-target');
+          if (!targetSelector) return;
+          const target = document.querySelector(targetSelector);
+          if (!target) return;
+
+          btn.addEventListener('click', () => {
+            const dense = target.classList.toggle('table-dense');
+            btn.textContent = dense ? 'Comfortable Rows' : 'Compact Rows';
+          });
+        });
+      }
+
+      setupToasts();
+      setupTopbarToggle();
+      setupTableDensityToggle();
+    }());
+  </script>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>
